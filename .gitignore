@@ -102,3 +102,6 @@ ENV/
 
 # PyCharm stuff
 .idea
+
+# Bot stuff
+bot*.ini
