@@ -39,12 +39,13 @@ def main(client_id, client_secret, username, password, config_path):
                          )
 
     logging.info("Starting up")
-    t = {"timer": None}
+    t = {}
 
     def signal_handler(signal, frame):
         print('You pressed Ctrl+C! Canceling timer or waiting for operation to end')
-        t["timer"].cancel()
-        t["timer"].join()
+        if "timer" in t:
+            t["timer"].cancel()
+            t["timer"].join()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
