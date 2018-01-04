@@ -15,6 +15,13 @@ class TestRangeParser(unittest.TestCase):
         self.assertEqual(get_range_from_string(string_no_start_hour), (61, 3722))
         self.assertEqual(get_range_from_string(string_no_end_hour), (3661, 122))
 
+    def test_start_no_end(self):
+        string_no_hours = "prefix [01:00-]"
+        string_with_hours = "prefix [01:01:01-] suffix"
+
+        self.assertEqual(get_range_from_string(string_no_hours), (60, None))
+        self.assertEqual(get_range_from_string(string_with_hours), (3661, None))
+
 
 if __name__ == '__main__':
     unittest.main()
