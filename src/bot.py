@@ -6,11 +6,13 @@ import os
 from os import makedirs, chdir, getcwd, scandir
 from shutil import rmtree
 
+import acoustid
 from youtube_dl import DownloadError, YoutubeDL
 
 __author__ = "LoveIsGrief"
 
 DOWNLOAD_SECTION = "download_and_extract_audio"
+ACOUSTID_SECTION = "acoustid"
 
 IGNORED_DOWNLOAD_ERRORS = [
     "ERROR: No media found"
@@ -21,7 +23,12 @@ def process_submission(submission, config):
     logger = logging.getLogger("bot.process_submission")
     try:
         downloaded_file = download_and_extract_audio(submission, config)
-        logger.info("Download for %s: %s", submission.fullname, downloaded_file)
+        logger.info("Download for %s '%s' '%s'", submission.shortlink, submission.url, downloaded_file)
+
+        acoustid_key = config.get(ACOUSTID_SECTION, "apikey")
+        for score, recording_id, title, artist in acoustid.match(acoustid_key, downloaded_file):
+            logger.info("results from acoustid %s - %s https://musicbrainz.org/recording/%s", artist, title, recording_id)
+
         # TODO cleanup the directory once processing is done
     except DownloadError as de:
         if str(de) not in IGNORED_DOWNLOAD_ERRORS:
@@ -56,7 +63,7 @@ def download_and_extract_audio(submission, config):
                 'preferredcodec': "best"
             }]
         }) as ydl:
-            logger.info("Downloading file from %s", submission.url)
+            logger.info("Downloading file for %s from %s",submission.shortlink, submission.url)
             ret_code = ydl.download([submission.url])
             if ret_code > 0:
                 raise RuntimeError("Unknown retcode from ydl: %s" % ret_code)

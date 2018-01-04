@@ -2,22 +2,25 @@
 A simple bot that checks SUBREDDITS every DEFAULT_INTERVAL seconds and take an action.
 """
 import argparse
+import logging
+import signal
+import sys
 from configparser import ConfigParser
 from threading import Timer
 
 import praw
-import signal
-import sys
-import logging
 
-from src.bot import process_submission
+from src.bot import process_submission, ACOUSTID_SECTION
 
 __author__ = "LoveIsGrief"
 __version__ = "0.0.1"
 
 CONFIG_FILENAME = "bot.ini"
 AUTH_SECTION = "authentication"
-AUTH_SECTION_OPTIONS = ["client_id", "client_secret", "username", "password"]
+MANDATORY_CONFIG = {
+    AUTH_SECTION: ["client_id", "client_secret", "username", "password"],
+    ACOUSTID_SECTION: ["apikey"]
+}
 KEEPER_SECTION = "subreddit_keepers"
 USER_AGENT = "reddit-whatsongisthis-bot_%s" % __version__
 
@@ -74,7 +77,8 @@ def main(client_id, client_secret, username, password, config_path):
             for submission in news:
                 if not first:
                     first = submission.fullname
-                logging.debug("%s | self: %s, video: %s @ %s", submission.title, submission.is_self, submission.is_video, submission.url)
+                logging.debug("%s | self: %s, video: %s @ %s", submission.title, submission.is_self,
+                              submission.is_video, submission.url)
                 counter += 1
                 process_submission(submission, config)
             logging.info("Treated %s submissions", counter)
@@ -110,15 +114,17 @@ if __name__ == '__main__':
         print("Couldn't open %s" % config_path)
         exit(1)
 
-    if AUTH_SECTION not in config:
-        print("!!!MISSING '%s' section in config file" % AUTH_SECTION)
-        exit(1)
+    for section, options in MANDATORY_CONFIG.items():
 
-    missing_auth_params = [options for options in AUTH_SECTION_OPTIONS
-                           if not config.has_option(AUTH_SECTION, options)]
-    if missing_auth_params:
-        print("!!!MISSING %s options in '%s' section" % (" , ".join(missing_auth_params), AUTH_SECTION))
-        exit(1)
+        if section not in config:
+            print("!!!MISSING '%s' section in config file" % section)
+            exit(1)
+
+        missing_auth_params = [options for options in options
+                               if not config.has_option(section, options)]
+        if missing_auth_params:
+            print("!!!MISSING %s options in '%s' section" % (" , ".join(missing_auth_params), section))
+            exit(1)
 
     main(
         config.get(AUTH_SECTION, "client_id"),
