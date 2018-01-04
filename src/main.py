@@ -14,7 +14,7 @@ from src.bot import process_submission
 from src.suggestion import ACOUSTID_SECTION
 
 __author__ = "LoveIsGrief"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 CONFIG_FILENAME = "bot.ini"
 AUTH_SECTION = "authentication"
