@@ -1,0 +1,21 @@
+Maybe these suggestions may help
+
+{%- macro mb_link(suggestion, text) -%}
+[{{ text }}](https://musicbrainz.org/recording/{{ suggestion.recording_id }})
+{%- endmacro -%}
+
+{% for suggestion in suggestions %}
+{% set title = suggestion.artist + " - " + suggestion.title %}
+**{{ mb_link(suggestion, title) }}**
+
+{% for name, url in searches.items() %}
+  - [{{ name }} search]({{ url }}{{ title|urlencode }})
+{%- endfor %}
+{% endfor %}
+
+---------------
+
+**Notice**:
+
+This is a bot (as you can guess).
+Here's the [code](https://github.com/LoveIsGrief/reddit-whatsongisthis-bot)
