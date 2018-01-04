@@ -31,6 +31,9 @@ def seconds_from_match(match, prefix):
 def get_range_from_string(string):
     """
 
+    WARNING:
+    Be sure that `start >= end` otherwise start will be set to None!
+
     :param string:
     :type string: str
     :return: start and end of the range in seconds, None for any value means infinity
@@ -38,7 +41,6 @@ def get_range_from_string(string):
     """
     start = None
     end = None
-    print(RANGE_REGEX_OPT_START)
     m = re.search(RANGE_REGEX_OPT_START, string)
     if not m:
         m = re.search(RANGE_REGEX_OPT_END, string)
@@ -47,5 +49,8 @@ def get_range_from_string(string):
             start = seconds_from_match(m, "s_")
         if m.group("end"):
             end = seconds_from_match(m, "e_")
+
+    if (start and end) and start >= end:
+        start = None
 
     return start, end

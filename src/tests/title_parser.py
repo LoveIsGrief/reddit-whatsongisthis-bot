@@ -13,7 +13,7 @@ class TestRangeParser(unittest.TestCase):
         self.assertEqual(get_range_from_string(string_no_hours), (60, 120))
         self.assertEqual(get_range_from_string(string_with_hours), (3661, 3722))
         self.assertEqual(get_range_from_string(string_no_start_hour), (61, 3722))
-        self.assertEqual(get_range_from_string(string_no_end_hour), (3661, 122))
+        self.assertEqual(get_range_from_string(string_no_end_hour), (None, 122))
 
     def test_start_no_end(self):
         string_no_hours = "prefix [01:00-]"
@@ -28,6 +28,20 @@ class TestRangeParser(unittest.TestCase):
 
         self.assertEqual(get_range_from_string(string_no_hours), (None, 120))
         self.assertEqual(get_range_from_string(string_with_hours), (None, 3722))
+
+    def test_invalids(self):
+        invalids = [
+            "",
+            "prefix [] suffix"
+            "prefix [-] suffix"
+            "prefix [00:01:02] suffix"
+            "prefix [zz:yy:xx-] suffix"
+            "prefix [-aa:bb:cc] suffix"
+            "prefix [zz:yy:xx-aa:bb:cc] suffix"
+        ]
+
+        for invalid in invalids:
+            self.assertEqual(get_range_from_string(invalid), (None, None))
 
 
 if __name__ == '__main__':
