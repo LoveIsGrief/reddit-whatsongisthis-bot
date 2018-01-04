@@ -10,6 +10,8 @@ import signal
 import sys
 import logging
 
+from src.bot import process_submission
+
 __author__ = "LoveIsGrief"
 __version__ = "0.0.1"
 
@@ -39,12 +41,13 @@ def main(client_id, client_secret, username, password, config_path):
                          )
 
     logging.info("Starting up")
-    t = {"timer": None}
+    t = {}
 
     def signal_handler(signal, frame):
         print('You pressed Ctrl+C! Canceling timer or waiting for operation to end')
-        t["timer"].cancel()
-        t["timer"].join()
+        if "timer" in t:
+            t["timer"].cancel()
+            t["timer"].join()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -68,11 +71,12 @@ def main(client_id, client_secret, username, password, config_path):
             news = reddit.subreddit(subreddit).new(limit=100, params=dict(before=before))
             first = None
             counter = 0
-            for post in news:
+            for submission in news:
                 if not first:
-                    first = post.fullname
-                logging.debug("%s | self: %s, video: %s @ %s", post.title, post.is_self, post.is_video, post.url)
+                    first = submission.fullname
+                logging.debug("%s | self: %s, video: %s @ %s", submission.title, submission.is_self, submission.is_video, submission.url)
                 counter += 1
+                process_submission(submission, config)
             logging.info("Treated %s submissions", counter)
             config.set(KEEPER_SECTION, subreddit, first or before)
 
