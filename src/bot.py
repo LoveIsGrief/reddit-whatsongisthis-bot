@@ -6,28 +6,44 @@ import os
 from os import makedirs, chdir, getcwd, scandir
 from shutil import rmtree
 
-import acoustid
+from jinja2 import Environment, PackageLoader
 from youtube_dl import DownloadError, YoutubeDL
+
+from src.suggestion import get_suggestions
 
 __author__ = "LoveIsGrief"
 
 DOWNLOAD_SECTION = "download_and_extract_audio"
-ACOUSTID_SECTION = "acoustid"
 
 IGNORED_DOWNLOAD_ERRORS = [
     "ERROR: No media found"
 ]
 
+JINJA_ENV = Environment(loader=PackageLoader("src"))
 
-def process_submission(submission, config):
+
+def process_submission(submission, config, reddit):
+    """
+
+    :param submission:
+    :type submission: praw.models.reddit.submission.Submission
+    :param config:
+    :type config:
+    :param reddit:
+    :type reddit:
+    :return:
+    :rtype:
+    """
     logger = logging.getLogger("bot.process_submission")
     try:
         downloaded_file = download_and_extract_audio(submission, config)
         logger.info("Download for %s '%s' '%s'", submission.shortlink, submission.url, downloaded_file)
-
-        acoustid_key = config.get(ACOUSTID_SECTION, "apikey")
-        for score, recording_id, title, artist in acoustid.match(acoustid_key, downloaded_file):
-            logger.info("results from acoustid %s - %s https://musicbrainz.org/recording/%s", artist, title, recording_id)
+        if not downloaded_file:
+            return
+        suggestions = get_suggestions(downloaded_file, config)
+        if len(suggestions) > 0 and not already_commented(submission, reddit):
+            comment = construct_reddit_comment(suggestions)
+            submission.reply(comment)
 
         # TODO cleanup the directory once processing is done
     except DownloadError as de:
@@ -35,6 +51,31 @@ def process_submission(submission, config):
             logger.warning("DownloadError during download_and_extract_audio %s", de, exc_info=True)
     except Exception as e:
         logger.warning("Untreated error during download_and_extract_audio %s", e, exc_info=True)
+
+
+def already_commented(submission, reddit):
+    return len([
+        comment for comment in reddit.redditor(reddit.config.username).comments.new(limit=None)
+        if comment.submission.fullname == submission.fullname
+    ]) > 0
+
+
+def construct_reddit_comment(suggestions):
+    """
+    :param suggestions:
+    :type suggestions: Suggestion[]
+    :return:
+    :rtype: str
+    """
+    return JINJA_ENV.get_template("comment.jinja2").render({
+        "suggestions": suggestions,
+        "searches": {
+            "Youtube": "https://www.youtube.com/results?search_query=",
+            "Soundcloud": "https://soundcloud.com/search?q=",
+            "DuckDuckGo": "https://duckduckgo.com/?iax=videos&ia=videos&q=",
+            "Google": "https://encrypted.google.com/search?source=lnms&tbm=vid&q="
+        }
+    })
 
 
 def list_visible_files(directory="."):
@@ -63,7 +104,7 @@ def download_and_extract_audio(submission, config):
                 'preferredcodec': "best"
             }]
         }) as ydl:
-            logger.info("Downloading file for %s from %s",submission.shortlink, submission.url)
+            logger.info("Downloading file for %s from %s", submission.shortlink, submission.url)
             ret_code = ydl.download([submission.url])
             if ret_code > 0:
                 raise RuntimeError("Unknown retcode from ydl: %s" % ret_code)

@@ -10,7 +10,8 @@ from threading import Timer
 
 import praw
 
-from src.bot import process_submission, ACOUSTID_SECTION
+from src.bot import process_submission
+from src.suggestion import ACOUSTID_SECTION
 
 __author__ = "LoveIsGrief"
 __version__ = "0.0.1"
@@ -80,7 +81,7 @@ def main(client_id, client_secret, username, password, config_path):
                 logging.debug("%s | self: %s, video: %s @ %s", submission.title, submission.is_self,
                               submission.is_video, submission.url)
                 counter += 1
-                process_submission(submission, config)
+                process_submission(submission, config, reddit)
             logging.info("Treated %s submissions", counter)
             config.set(KEEPER_SECTION, subreddit, first or before)
 
