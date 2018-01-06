@@ -28,7 +28,7 @@ class FFmpegExtractAndCutAudioPP(FFmpegExtractAudioPP):
         :param path:
         :type path: str
         :return: json
-        :rtype: str
+        :rtype: dict
         """
         if not self.probe_available:
             raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
