@@ -18,8 +18,8 @@ class Suggestion(object):
 
     def __init__(self, recording_id, artist, title):
         self._recording_id = recording_id
-        self._artist = artist
-        self._title = title
+        self._artist = artist or ""
+        self._title = title or ""
 
     @property
     def recording_id(self):
