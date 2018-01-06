@@ -24,6 +24,13 @@ class TestFFmpegExtractAndCutAudioPP(unittest.TestCase):
         ff.run({
             "filepath": MP4_PATH
         })
+        expected_output_file = os.path.join(ASSETS_DIR, "oceans.m4a")
+        self.assertTrue(os.path.isfile(expected_output_file))
+
+        probe = ff.probe_file(expected_output_file)
+        self.assertIsInstance(probe, dict)
+        duration = float(probe["format"]["duration"])
+        self.assertAlmostEqual(duration, 5, delta=0.2)
 
 
 if __name__ == '__main__':
