@@ -9,7 +9,9 @@ from shutil import rmtree
 from jinja2 import Environment, PackageLoader
 from youtube_dl import DownloadError, YoutubeDL
 
+from src.postprocessors import FFmpegExtractAndCutAudioPP
 from src.suggestion import get_suggestions
+from src.title_parser import get_range_from_string
 
 __author__ = "LoveIsGrief"
 
@@ -99,12 +101,18 @@ def download_and_extract_audio(submission, config):
     try:
         with YoutubeDL(params={
             "format": "worstaudio/worstvideo/worst",
-            "postprocessors": [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': "best"
-            }]
         }) as ydl:
             logger.info("Downloading file for %s from %s", submission.shortlink, submission.url)
+
+            # Parse args from title to cut if necessary
+            start, end = get_range_from_string(submission.title)
+            if start or end:
+                ydl.add_post_processor(FFmpegExtractAndCutAudioPP(
+                    preferredcodec="best",
+                    cut_start=start,
+                    cut_end=end,
+                    suffix="_cut"
+                ))
             ret_code = ydl.download([submission.url])
             if ret_code > 0:
                 raise RuntimeError("Unknown retcode from ydl: %s" % ret_code)
