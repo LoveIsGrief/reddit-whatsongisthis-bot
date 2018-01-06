@@ -105,3 +105,7 @@ ENV/
 
 # Bot stuff
 bot*.ini
+
+# Stuff for testing
+tests/assets
+!tests/assets/__init__.py
