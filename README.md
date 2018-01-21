@@ -3,9 +3,9 @@ A bot that will automatically try to identify songs posted to https://reddit.com
 
 # Requirements
 
+ - [Chromaprint](https://acoustid.org/chromaprint) for audio fingerprinting
  - Python > 3.5
  - [ffmpeg](https://ffmpeg.org/download.html) (a dependency of youtube-dl)
-
 
 
 # Setup
@@ -13,7 +13,7 @@ A bot that will automatically try to identify songs posted to https://reddit.com
 **Ubuntu / Debian**
 
 ```bash
-sudo apt-get install virtualenv
+sudo apt-get install virtualenv ffmpeg libchromaprint-tools
 virtualenv -p python3 env
 pip install -r requirements.txt
 ```
