@@ -100,6 +100,7 @@ def download_and_extract_audio(submission, config):
     try:
         with YoutubeDL(params={
             "format": "worstaudio/worstvideo/worst",
+            "noplaylist": True,
             "postprocessors": [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': "best"
