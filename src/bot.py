@@ -45,7 +45,8 @@ def process_submission(submission, config, reddit):
         suggestions = get_suggestions(downloaded_file, config)
         if len(suggestions) > 0 and not already_commented(submission, reddit):
             comment = construct_reddit_comment(suggestions)
-            submission.reply(comment)
+            reply = submission.reply(comment)
+            logger.info("FOUND SUGGESTIONS! Posting reply: %s", reply)
 
         # TODO cleanup the directory once processing is done
     except DownloadError as de:
@@ -101,6 +102,7 @@ def download_and_extract_audio(submission, config):
     try:
         with YoutubeDL(params={
             "format": "worstaudio/worstvideo/worst",
+            "noplaylist": True
         }) as ydl:
             logger.info("Downloading file for %s from %s", submission.shortlink, submission.url)
 

@@ -5,10 +5,16 @@ import argparse
 import logging
 import signal
 import sys
+import os
 from configparser import ConfigParser
 from threading import Timer
 
 import praw
+
+PACKAGE_DIR = os.path.dirname(__file__)
+PACKAGE_PARENT_DIR = os.path.dirname(PACKAGE_DIR)
+if PACKAGE_PARENT_DIR not in sys.path:
+    sys.path.append(PACKAGE_PARENT_DIR)
 
 from src.bot import process_submission
 from src.suggestion import ACOUSTID_SECTION
